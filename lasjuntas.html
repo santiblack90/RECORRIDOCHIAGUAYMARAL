@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🚐​Registro de Salida de Bus</title>
+  <link rel="stylesheet" href="lasjuntas.css" />
+</head>
+<body>
+  <main class="container">
+    <h1 class="titleWithImg">
+      <img class="titleImg" src="image_c7d99b3.png" alt="Buseta" />
+      <span>Registra Salida de Buseta - Chia / Guaymaral</span>
+    </h1>
+
+
+    <section class="card">
+      <div style="color: rgba(231,238,252,0.75); font-weight:700; margin-bottom:10px; font-size:13px;">
+        Solicitudes de bus Registradas (usuariosalida)
+      </div>
+      <div id="solicitudEstado" style="font-weight:900; font-size:16px; margin-bottom:14px;">Cargando solicitudes...</div>
+
+
+      <div class="row">
+        <label class="field">
+          <span>Fecha</span>
+          <input id="fecha" type="date" readonly />
+        </label>
+
+        <label class="field">
+          <span>Hora</span>
+          <input id="hora" type="time" readonly />
+        </label>
+      </div>
+
+      <label class="field" style="margin-top:14px;">
+        <span>Sentido del recorrido</span>
+        <select id="sentido" class="select" aria-label="Sentido">
+          <option value="Chia / Guaymaral" selected>Chia / Guaymaral</option>
+          <option value="Guaymaral / Chia">Guaymaral / Chia</option>
+        </select>
+      </label>
+
+      <button id="btnRegistrar" class="btn" type="button">Registrar</button>
+      <p id="mensaje" class="mensaje" aria-live="polite"></p>
+    </section>
+
+
+    <section class="card">
+      <h2>Historial</h2>
+      <div class="tableWrap">
+        <table class="tabla" aria-label="Historial de registros">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+            </tr>
+          </thead>
+          <tbody id="historial"></tbody>
+        </table>
+      </div>
+      <button id="btnBorrar" class="btn btn--danger" type="button">Borrar historial</button>
+    </section>
+
+    <section class="card">
+      <h2>Mostrar en vivo (25 min)</h2>
+      <div id="barrasSalidas" class="barras"></div>
+    </section>
+  </main>
+
+
+  <script src="funcionbuseta.js" defer></script>
+</body>
+</html>
+

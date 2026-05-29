@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🚐​ Ver salidas de bus</title>
+  <link rel="stylesheet" href="lasjuntas.css" />
+</head>
+<body>
+  <main class="container">
+    <h1 class="titleWithImg">
+      <img class="titleImg" src="image_c7d99b3.png" alt="Buseta" />
+      <span>Salidas Buseta Chia / Guaymaral</span>
+    </h1>
+
+    <p>INSTRUCCIONES DE USO:
+      Segun la hora de salida de la buseta debes calcular:
+      donde se encuentra actualmente, teniendo en cuenta que el recorrido dura 25 minutos.
+      Debes tener en cuenta el sentido del recorrido para CALCULAR la ubicacion correcta.
+    </p>
+    <div>Horarios:
+      <ul>
+        <li> LUNES A SABADO: 5:30 AM - 8:00 PM</li>
+        <li> DOMINGO 7:30 AM - 6:00PM</li>
+      
+      </ul>
+    </div>
+
+    <section class="card">
+      <div class="solicitudRow" style="display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+        <div style="flex:1 1 auto; min-width:240px;">
+          <div style="color: var(--muted); font-weight:700; font-size:13px; margin-bottom:4px;">Solicitudes</div>
+          <div id="solicitudEstado" style="font-weight:700;">0 solicitudes registradas</div>
+        </div>
+        <button id="btnSolicitarBus" class="btn" type="button" style="width:auto; flex:0 0 auto;">SOLICITAR BUS (1 vez)</button>
+      </div>
+
+      <div class="tableWrap">
+        <table class="tabla" aria-label="Historial de salidas">
+
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+            </tr>
+          </thead>
+          <tbody id="historial"></tbody>
+        </table>
+      </div>
+
+      <div class="visor" aria-label="Mostrar en vivo (25 minutos)">
+        <h2>Recorrido en vivo / Calcular ubicacion actual (25 min)</h2>
+        <div id="barrasSalidas" class="barras" aria-live="polite"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <script src="funcionbuseta_usuario.js" defer></script>
+</body>
+</html>
+
