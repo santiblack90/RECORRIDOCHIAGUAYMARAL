@@ -1,12 +1,18 @@
+import { getDatabase, ref, remove, onValue } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { app } from "./firebase-init.js";
+
 (() => {
   const $tbody = document.getElementById('historial');
   const $info = document.getElementById('info');
-  // Solicitud de bus
-
   const $barras = document.getElementById('barrasSalidas');
 
-  const KEY = 'bus_salida_historial_v1';
+  const KEY_SOLICITUD = 'bus_salida_solicitudes_v1';
   const DURACION_MS = 25 * 60 * 1000;
+
+  // Firebase Realtime Database (lee salidas en /salidas)
+  const db = getDatabase(app);
+  const SALIDAS_REF = ref(db, "salidas");
+  let recordsCache = [];
 
   function escapeHtml(str) {
     return String(str)
@@ -17,14 +23,18 @@
       .replaceAll("'", '&#039;');
   }
 
-  function load() {
+  function loadSolicitudes() {
     try {
-      const raw = localStorage.getItem(KEY);
-      const data = raw ? JSON.parse(raw) : [];
-      return Array.isArray(data) ? data : [];
+      const raw = localStorage.getItem(KEY_SOLICITUD);
+      const val = raw ? Number(raw) : 0;
+      return Number.isFinite(val) && val > 0 ? val : 0;
     } catch {
-      return [];
+      return 0;
     }
+  }
+
+  function pad2(n) {
+    return String(n).padStart(2, '0');
   }
 
   function render(records) {
@@ -54,7 +64,6 @@
     return ordered;
   }
 
-  // --- Barras por cada salida (misma estructura visual que lasjuntas.html/funcionbuseta.js) ---
   function createSalidaBar(record) {
     const wrapper = document.createElement('div');
     wrapper.className = 'salidaBar';
@@ -63,7 +72,6 @@
     wrapper.innerHTML = `
       <div class="salidaMeta">
         <div class="salidaTitle">Salida ${record.fecha} ${record.hora}${record.sentido ? ` • ${record.sentido}` : ''}</div>
-
         <div class="salidaTiempo" data-tiempo>—</div>
       </div>
 
@@ -82,7 +90,6 @@
     return wrapper;
   }
 
-
   function renderBars(records) {
     if (!$barras) return;
     $barras.innerHTML = '';
@@ -94,15 +101,10 @@
     }
   }
 
-  function pad2(n) {
-    return String(n).padStart(2, '0');
-  }
-
   function updateBars() {
     if (!$barras) return;
 
-    const records = load();
-    const byTs = new Map(records.filter(r => typeof r.ts === 'number').map(r => [r.ts, r]));
+    const byTs = new Map(recordsCache.map(r => [r.ts, r]));
     const bars = $barras.querySelectorAll('.salidaBar');
 
     const now = Date.now();
@@ -131,25 +133,12 @@
       const minutes = Math.floor(remaining / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
       if (tiempo) tiempo.textContent = `faltan ${minutes}m ${pad2(seconds)}s`;
-
     });
   }
 
-  const KEY_SOLICITUD = 'bus_salida_solicitudes_v1';
+  // Solicitud de bus (se mantiene en localStorage)
   const KEY_SOLICITO_UNA_VEZ = 'bus_salida_solicitud_hecha_v1';
   const KEY_SOLICITUD_RESET_TS = 'bus_salida_solicitud_reset_ts_v1';
-
-
-
-  function loadSolicitudes() {
-    try {
-      const raw = localStorage.getItem(KEY_SOLICITUD);
-      const val = raw ? Number(raw) : 0;
-      return Number.isFinite(val) && val > 0 ? val : 0;
-    } catch {
-      return 0;
-    }
-  }
 
   function saveSolicitudes(n) {
     localStorage.setItem(KEY_SOLICITUD, String(n));
@@ -182,7 +171,6 @@
     actualizarEstadoSolicitudes();
 
     alert('Solicitud registrada.');
-
   }
 
   function resetSolicitudesIfNeeded(now = Date.now()) {
@@ -202,18 +190,38 @@
     } catch {}
   }
 
+  function initRealtime() {
+    onValue(SALIDAS_REF, snapshot => {
+      const raw = snapshot.val();
+      const arr = [];
+      if (raw && typeof raw === 'object') {
+        for (const [, value] of Object.entries(raw)) {
+          if (!value || typeof value !== 'object') continue;
+          const fecha = value.fecha;
+          const hora = value.hora;
+          const sentido = value.sentido;
+          const ts = typeof value.ts === 'number' ? value.ts : Number(value.ts);
+          if (!Number.isFinite(ts)) continue;
+          arr.push({ fecha, hora, sentido, ts });
+        }
+      }
+
+      recordsCache = arr;
+      const ordered = render(recordsCache);
+
+      if ($info) {
+        $info.textContent = recordsCache.length ? `Total: ${recordsCache.length} salida(s)` : '';
+      }
+
+      renderBars(ordered);
+      updateBars();
+    });
+  }
+
   function init() {
     resetSolicitudesIfNeeded();
 
-    const records = load();
-    const ordered = render(records);
-
-    if ($info) {
-      $info.textContent = records.length ? `Total: ${records.length} salida(s)` : '';
-    }
-
-    renderBars(ordered);
-    updateBars();
+    initRealtime();
 
     setInterval(updateBars, 1000);
 
@@ -222,14 +230,11 @@
       actualizarEstadoSolicitudes();
       btn.addEventListener('click', solicitarBus);
     }
+
+    // Mantener el texto de solicitudes refrescado
+    setInterval(actualizarEstadoSolicitudes, 2000);
   }
 
   init();
 })();
-
-
-
-
-
-
 
